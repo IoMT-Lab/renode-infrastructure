@@ -65,7 +65,7 @@ namespace Antmicro.Renode.Peripherals
             var baseAddress = Convert.ToInt64(o);
             for(var i = 0; i < count; i++)
             {
-                var register = c.DefineRegister(baseAddress + i * stepInBytes, resetValue, softResettable);
+                var register = c.DefineRegister(baseAddress + i * stepInBytes, resetValue, softResettable, name);
                 setup(register, i);
             }
         }
@@ -83,7 +83,7 @@ namespace Antmicro.Renode.Peripherals
 
         public static DoubleWordRegister Define(this System.Enum o, DoubleWordRegisterCollection c, uint resetValue = 0, bool softResettable = true, string name = "")
         {
-            return c.DefineRegister(Convert.ToInt64(o), resetValue, softResettable);
+            return c.DefineRegister(Convert.ToInt64(o), resetValue, softResettable, name);
         }
 
         public static DoubleWordRegister Define(this System.Enum o, IProvidesRegisterCollection<DoubleWordRegisterCollection> p, uint resetValue = 0, bool softResettable = true, string name = "")
@@ -93,12 +93,12 @@ namespace Antmicro.Renode.Peripherals
 
         public static DoubleWordRegister DefineConditional(this System.Enum o, DoubleWordRegisterCollection c, Func<bool> condition, ushort resetValue = 0, bool softResettable = true, string name = "")
         {
-            return c.DefineConditionalRegister(Convert.ToInt64(o), condition, resetValue, softResettable);
+            return c.DefineConditionalRegister(Convert.ToInt64(o), condition, resetValue, softResettable, name);
         }
 
         public static DoubleWordRegister DefineConditional(this System.Enum o, IProvidesRegisterCollection<DoubleWordRegisterCollection> p, Func<bool> condition, ushort resetValue = 0, bool softResettable = true, string name = "")
         {
-            return o.DefineConditional(p.RegistersCollection, condition, resetValue, softResettable);
+            return o.DefineConditional(p.RegistersCollection, condition, resetValue, softResettable, name);
         }
 
         public static void DefineManyConditional(this System.Enum o, DoubleWordRegisterCollection c, uint count, Func<int, bool> condition, Action<DoubleWordRegister, int> setup, uint stepInBytes = 1, uint resetValue = 0, string name = "")
@@ -107,7 +107,7 @@ namespace Antmicro.Renode.Peripherals
             for(var i = 0; i < count; i++)
             {
                 var idx = i;
-                var register = c.DefineConditionalRegister(baseAddress + i * stepInBytes, () => condition(idx), resetValue);
+                var register = c.DefineConditionalRegister(baseAddress + i * stepInBytes, () => condition(idx), resetValue, name: name);
                 setup(register, i);
             }
         }

@@ -62,7 +62,7 @@ namespace Antmicro.Renode.Peripherals
             var baseAddress = Convert.ToInt64(o);
             for(var i = 0; i < count; i++)
             {
-                var register = c.DefineRegister(baseAddress + i * stepInBytes, resetValue, softResettable);
+                var register = c.DefineRegister(baseAddress + i * stepInBytes, resetValue, softResettable, name);
                 setup(register, i);
             }
         }
@@ -74,7 +74,7 @@ namespace Antmicro.Renode.Peripherals
 
         public static ByteRegister Define8(this System.Enum o, IProvidesRegisterCollection<ByteRegisterCollection> p, byte resetValue = 0, bool softResettable = true, string name = "")
         {
-            return Define(o, p, resetValue, softResettable);
+            return Define(o, p, resetValue, softResettable, name);
         }
 
         public static ByteRegister Define(this System.Enum o, IProvidesRegisterCollection<ByteRegisterCollection> p, byte resetValue = 0, bool softResettable = true, string name = "")
@@ -84,17 +84,17 @@ namespace Antmicro.Renode.Peripherals
 
         public static ByteRegister Define(this System.Enum o, ByteRegisterCollection c, byte resetValue = 0, bool softResettable = true, string name = "")
         {
-            return c.DefineRegister(Convert.ToInt64(o), resetValue, softResettable);
+            return c.DefineRegister(Convert.ToInt64(o), resetValue, softResettable, name);
         }
 
         public static ByteRegister DefineConditional(this System.Enum o, ByteRegisterCollection c, Func<bool> condition, byte resetValue = 0, bool softResettable = true, string name = "")
         {
-            return c.DefineConditionalRegister(Convert.ToInt64(o), condition, resetValue, softResettable);
+            return c.DefineConditionalRegister(Convert.ToInt64(o), condition, resetValue, softResettable, name);
         }
 
         public static ByteRegister DefineConditional(this System.Enum o, IProvidesRegisterCollection<ByteRegisterCollection> p, Func<bool> condition, byte resetValue = 0, bool softResettable = true, string name = "")
         {
-            return o.DefineConditional(p.RegistersCollection, condition, resetValue, softResettable);
+            return o.DefineConditional(p.RegistersCollection, condition, resetValue, softResettable, name);
         }
 
         public static void DefineManyConditional(this System.Enum o, ByteRegisterCollection c, uint count, Func<int, bool> condition, Action<ByteRegister, int> setup, uint stepInBytes = 1, byte resetValue = 0, string name = "")
@@ -103,7 +103,7 @@ namespace Antmicro.Renode.Peripherals
             for(var i = 0; i < count; i++)
             {
                 var idx = i;
-                var register = c.DefineConditionalRegister(baseAddress + i * stepInBytes, () => condition(idx), resetValue);
+                var register = c.DefineConditionalRegister(baseAddress + i * stepInBytes, () => condition(idx), resetValue, name: name);
                 setup(register, i);
             }
         }

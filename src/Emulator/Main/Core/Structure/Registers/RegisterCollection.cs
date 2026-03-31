@@ -387,10 +387,11 @@ namespace Antmicro.Renode.Core.Structure.Registers
         /// <param name="offset">Register offset.</param>
         /// <param name="resetValue">Register reset value.</param>
         /// <param name="softResettable">Indicates if the register is cleared on soft reset.</param>
+        /// <param name="name">Optional name for the register.</param>
         /// <returns>Newly added register.</returns>
-        public R DefineRegister(long offset, T resetValue = default(T), bool softResettable = true)
+        public R DefineRegister(long offset, T resetValue = default(T), bool softResettable = true, string name = null)
         {
-            return DefineConditionalRegister(offset, null, resetValue, softResettable);
+            return DefineConditionalRegister(offset, null, resetValue, softResettable, name);
         }
 
         /// <summary>
@@ -400,11 +401,12 @@ namespace Antmicro.Renode.Core.Structure.Registers
         /// <param name="resetValue">Register reset value.</param>
         /// <param name="condition">Condition based on which a register is selected.</param>
         /// <param name="softResettable">Indicates if the register is cleared on soft reset.</param>
+        /// <param name="name">Optional name for the register.</param>
         /// <returns>Newly added register.</returns>
-        public R DefineConditionalRegister(long offset, Func<bool> condition, T resetValue = default(T), bool softResettable = true)
+        public R DefineConditionalRegister(long offset, Func<bool> condition, T resetValue = default(T), bool softResettable = true, string name = null)
         {
-            var constructor = typeof(R).GetConstructor(new Type[] { typeof(IPeripheral), typeof(ulong), typeof(bool) });
-            var reg = (R)constructor.Invoke(new object[] { parent, Misc.CastToULong(resetValue), softResettable });
+            var constructor = typeof(R).GetConstructor(new Type[] { typeof(IPeripheral), typeof(ulong), typeof(bool), typeof(string) });
+            var reg = (R)constructor.Invoke(new object[] { parent, Misc.CastToULong(resetValue), softResettable, name });
             AddRegisterInner(offset, reg, condition);
             return reg;
         }
