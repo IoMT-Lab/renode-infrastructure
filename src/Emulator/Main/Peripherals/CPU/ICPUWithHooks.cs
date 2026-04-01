@@ -19,7 +19,7 @@ namespace Antmicro.Renode.Peripherals.CPU
 
         void AddHook(ulong addr, CpuAddressHook hook);
 
-        void RemoveHook(ulong addr, CpuAddressHook hook);
+        void RemoveHook(ulong addr, CpuAddressHook hook, bool ignoreNotPresent = false);
 
         void RemoveHooksAt(ulong addr);
 

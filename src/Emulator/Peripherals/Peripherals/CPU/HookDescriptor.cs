@@ -59,14 +59,17 @@ namespace Antmicro.Renode.Peripherals.CPU
             }
         }
 
-        public void RemoveHook(ulong addr, CpuAddressHook callback)
+        public void RemoveHook(ulong addr, CpuAddressHook callback, bool ignoreNotPresent = false)
         {
             lock(hooks)
             {
                 Hook hook;
                 if(!hooks.TryGetValue(addr, out hook) || !RemoveCallback(hook, callback))
                 {
-                    Logger.WarningLog(cpu, "Tried to remove a nonexistent hook from address 0x{0:x}", addr);
+                    if (!ignoreNotPresent)
+                    {
+                        Logger.WarningLog(cpu, "Tried to remove a nonexistent hook from address 0x{0:x}", addr);
+                    }
                     return;
                 }
                 if(!hook.Callbacks.Any())
