@@ -458,6 +458,14 @@ namespace Antmicro.Renode.Peripherals.Bus
 
             builder.AppendFormat(": 0x{0:X}", cpu.PC.RawValue);
 
+            if(TryFindSymbolAt(cpu.PC.RawValue, out var symbolName, out var symbol, cpu))
+            {
+                builder
+                    .Append(" (")
+                    .Append(symbolName)
+                    .Append(")");
+            }
+
             builder
                 .Append("] ")
                 .Append(str);
