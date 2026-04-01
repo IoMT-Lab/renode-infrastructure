@@ -8,6 +8,22 @@ namespace Antmicro.Renode.Hooks
 {
     public static class SymbolHookExtensions
     {
+        private static readonly CpuAddressHook pauseHook = (cpu, addr) =>
+        {
+            cpu.Log(LogLevel.Info, "Pausing execution at symbol hook for address 0x{0:X}", addr);
+            cpu.Bus.Machine.PauseAndRequestEmulationPause();
+        };
+
+        public static void AddPauseHookAtSymbol(this IBusController sysbus, string symbol)
+        {
+            sysbus.AddHookAtSymbol(symbol, pauseHook);
+        }
+
+        public static void RemovePauseHookAtSymbol(this IBusController sysbus, string symbol)
+        {
+            sysbus.RemoveHookAtSymbol(symbol, pauseHook);
+        }
+
         public static void AddHookAtSymbol(this IBusController sysbus, string symbol, CpuAddressHook hook)
         {
             sysbus.ApplyAtSymbol(symbol, (cpu, addr) => cpu.AddHook(addr, hook));
