@@ -2411,6 +2411,12 @@ namespace Antmicro.Renode.Peripherals.Bus
                 }
                 this.Log(LogLevel.Warning, warning, address, type);
             }
+            
+            if(UnhandledAccessBehaviour == UnhandledAccessBehaviour.Pause)
+            {
+                Machine.PauseAndRequestEmulationPause();
+            }
+
             return defaultValue;
         }
 
@@ -2444,6 +2450,11 @@ namespace Antmicro.Renode.Peripherals.Bus
             }
             var logLevel = silent ? LogLevel.Debug : LogLevel.Warning;
             this.Log(logLevel, warning, address, value, type);
+
+            if(UnhandledAccessBehaviour == UnhandledAccessBehaviour.Pause)
+            {
+                Machine.PauseAndRequestEmulationPause();
+            }
         }
 
         private void AddContextKeys(IPeripheral peripheral)
