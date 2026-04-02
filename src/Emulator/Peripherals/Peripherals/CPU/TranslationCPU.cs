@@ -145,7 +145,7 @@ namespace Antmicro.Renode.Peripherals.CPU
             return TlibGetTotalExecutedInstructions();
         }
 
-        public void LogFunctionNames(bool value, string spaceSeparatedPrefixes = "", bool removeDuplicates = false, bool useFunctionSymbolsOnly = true)
+        public void LogFunctionNames(bool value, string spaceSeparatedPrefixes = "", bool removeDuplicates = false, bool useFunctionSymbolsOnly = true, bool eventOnly = false)
         {
             if(!value)
             {
@@ -153,7 +153,7 @@ namespace Antmicro.Renode.Peripherals.CPU
                 SetInternalHookAtBlockBegin(null);
                 return;
             }
-            logFunctionNamesCurrentState = new LogFunctionNamesState(spaceSeparatedPrefixes, removeDuplicates, useFunctionSymbolsOnly);
+            logFunctionNamesCurrentState = new LogFunctionNamesState(spaceSeparatedPrefixes, removeDuplicates, useFunctionSymbolsOnly, eventOnly);
 
             var prefixesAsArray = spaceSeparatedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             // using string builder here is due to performance reasons: test shows that string.Format is much slower
@@ -176,8 +176,17 @@ namespace Antmicro.Renode.Peripherals.CPU
                 {
                     return;
                 }
-                messageBuilder.Clear();
-                this.Log(LogLevel.Info, messageBuilder.Append("Entering function ").Append(name ?? "without name").Append(" at 0x").Append(pc.ToString("X")).ToString());
+
+                if(symbol != null)
+                {
+                    OnFunctionCall?.Invoke(this, pc, symbol);
+                }
+
+                if(!eventOnly)
+                {
+                    messageBuilder.Clear();
+                    this.Log(LogLevel.Info, messageBuilder.Append("Entering function ").Append(name ?? "without name").Append(" at 0x").Append(pc.ToString("X")).ToString());
+                }
             });
         }
 
@@ -350,7 +359,7 @@ namespace Antmicro.Renode.Peripherals.CPU
             if(cpuState.LogFunctionNamesState.HasValue)
             {
                 var logFunctionNamesState = cpuState.LogFunctionNamesState.Value;
-                LogFunctionNames(true, logFunctionNamesState.SpaceSeparatedPrefixes, logFunctionNamesState.RemoveDuplicates, logFunctionNamesState.UseFunctionSymbolsOnly);
+                LogFunctionNames(true, logFunctionNamesState.SpaceSeparatedPrefixes, logFunctionNamesState.RemoveDuplicates, logFunctionNamesState.UseFunctionSymbolsOnly, logFunctionNamesState.EventOnly);
             }
         }
 
@@ -1024,6 +1033,8 @@ namespace Antmicro.Renode.Peripherals.CPU
         public abstract string LLVMModel { get; }
 
         public abstract Endianess DisassemblyHexFormatting { get; }
+
+        public event CpuFunctionCall OnFunctionCall;
 
         public readonly bool UseMachineAtomicState;
 
@@ -2311,6 +2322,8 @@ namespace Antmicro.Renode.Peripherals.CPU
 
         private const int DefaultMaximumBlockSize = 0x7FF;
 
+        public delegate void CpuFunctionCall(ICpuSupportingGdb cpu, ulong address, Symbol symbol);
+
         protected sealed class CpuThreadPauseGuard : IDisposable
         {
             public CpuThreadPauseGuard(TranslationCPU parent)
@@ -2585,11 +2598,12 @@ namespace Antmicro.Renode.Peripherals.CPU
 
         private struct LogFunctionNamesState
         {
-            public LogFunctionNamesState(string spaceSeparatedPrefixes, bool removeDuplicates, bool useFunctionSymbolsOnly)
+            public LogFunctionNamesState(string spaceSeparatedPrefixes, bool removeDuplicates, bool useFunctionSymbolsOnly, bool eventOnly = false)
             {
                 this.SpaceSeparatedPrefixes = spaceSeparatedPrefixes;
                 this.RemoveDuplicates = removeDuplicates;
                 this.UseFunctionSymbolsOnly = useFunctionSymbolsOnly;
+                this.EventOnly = eventOnly;
             }
 
             public string SpaceSeparatedPrefixes { get; private set; }
@@ -2597,10 +2611,13 @@ namespace Antmicro.Renode.Peripherals.CPU
             public bool RemoveDuplicates { get; private set; }
 
             public bool UseFunctionSymbolsOnly { get; private set; }
+
+            public bool EventOnly { get; private set; }
         }
 
         private delegate void TranslationBlockFetchCallback(ulong pc);
 
         protected static readonly Exception InvalidInterruptNumberException = new InvalidOperationException("Invalid interrupt number.");
+
     }
 }
