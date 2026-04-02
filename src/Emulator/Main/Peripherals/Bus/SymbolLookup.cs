@@ -165,6 +165,12 @@ namespace Antmicro.Renode.Core
             return symbol;
         }
 
+        public IEnumerable<Symbol> GetSymbols(bool functionOnly = false)
+        {
+            IEnumerable<Symbol> enumerable = functionOnly ? functionSymbols : symbols;
+            return enumerable;
+        }
+
         public SymbolAddress? EntryPoint
         {
             get;
@@ -319,7 +325,7 @@ namespace Antmicro.Renode.Core
         /// </summary>
         private readonly SortedIntervals functionSymbols;
 
-        private class SortedIntervals : IEnumerable
+        private class SortedIntervals : IEnumerable, IEnumerable<Symbol>
         {
             public SortedIntervals(SymbolLookup owner)
             {
@@ -433,6 +439,12 @@ namespace Antmicro.Renode.Core
             public IEnumerator GetEnumerator()
             {
                 return symbols.GetEnumerator();
+            }
+
+            IEnumerator<Symbol> IEnumerable<Symbol>.GetEnumerator()
+            {
+                IEnumerable<Symbol> enumerable = symbols;
+                return enumerable.GetEnumerator();
             }
 
             /// <summary>
