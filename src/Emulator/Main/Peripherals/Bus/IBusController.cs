@@ -162,6 +162,8 @@ namespace Antmicro.Renode.Peripherals.Bus
 
         event Action<IMachine> OnSymbolsChanged;
 
+        event Action<UnhandledAccess> OnUnhandledAccess;
+
         IDisposable SetLocalContext(IPeripheral context, ulong? initiatorState = null);
     }
 

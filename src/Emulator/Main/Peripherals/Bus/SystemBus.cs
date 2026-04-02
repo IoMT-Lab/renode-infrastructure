@@ -1433,6 +1433,8 @@ namespace Antmicro.Renode.Peripherals.Bus
 
         public event Action<IMachine> OnSymbolsChanged;
 
+        public event Action<UnhandledAccess> OnUnhandledAccess;
+
         private static void ThrowIfNotAllMemory(IEnumerable<PeripheralLookupResult> targets)
         {
             foreach(var target in targets)
@@ -1515,6 +1517,25 @@ namespace Antmicro.Renode.Peripherals.Bus
         private void HandleChangedSymbols()
         {
             OnSymbolsChanged?.Invoke(Machine);
+        }
+
+        private void ReportUnhandledAccess(Access access)
+        {
+            if(TryGetCurrentCPU(out var cpu))
+            {
+                UnhandledAccess report;
+
+                if(TryFindSymbolAt(cpu.PC.RawValue, out var symbolName, out var symbol, cpu))
+                {
+                    report = new UnhandledAccess(cpu, cpu.PC.RawValue, symbol, access);
+                }
+                else
+                {
+                    report = new UnhandledAccess(cpu, cpu.PC.RawValue, null, access);
+                }
+
+                OnUnhandledAccess?.Invoke(report);
+            }
         }
 
         private IEnumerable<ICPU> GetCPUsForContext(IPeripheral context)
@@ -2411,6 +2432,8 @@ namespace Antmicro.Renode.Peripherals.Bus
                 }
                 this.Log(LogLevel.Warning, warning, address, type);
             }
+
+            ReportUnhandledAccess(Access.Read);
             
             if(UnhandledAccessBehaviour == UnhandledAccessBehaviour.Pause)
             {
@@ -2450,6 +2473,8 @@ namespace Antmicro.Renode.Peripherals.Bus
             }
             var logLevel = silent ? LogLevel.Debug : LogLevel.Warning;
             this.Log(logLevel, warning, address, value, type);
+
+            ReportUnhandledAccess(Access.Write);
 
             if(UnhandledAccessBehaviour == UnhandledAccessBehaviour.Pause)
             {
