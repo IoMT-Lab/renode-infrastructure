@@ -24,6 +24,15 @@ namespace Antmicro.Renode.Hooks
             sysbus.RemoveHookAtSymbol(symbol, pauseHook);
         }
 
+        public static void AddHookAtSymbol(this IBusController sysbus, string symbol, string pythonScript)
+        {
+            ApplyAtSymbol(sysbus, symbol, (cpu, addr) =>
+            {
+                var engine = new BlockPythonEngine(sysbus.Machine, cpu, pythonScript);
+                cpu.AddHook(addr, engine.Hook);
+            });
+        }
+
         public static void AddHookAtSymbol(this IBusController sysbus, string symbol, CpuAddressHook hook)
         {
             sysbus.ApplyAtSymbol(symbol, (cpu, addr) => cpu.AddHook(addr, hook));
