@@ -248,7 +248,7 @@ namespace Antmicro.Renode.Peripherals.CPU
                     var vprRegType = GDBCustomType.Flags("vpr_reg", 4, vprFields);
                     mveProfileFeature.Types.Add(vprRegType);
                     // MVE vector predication status and control register (VPR)
-                    mveProfileFeature.Registers.Add(new GDBRegisterDescriptor(117, 32, "vpr", "vpr_reg", "vector"));
+                    mveProfileFeature.Registers.Add(new GDBRegisterDescriptor((uint)CortexMRegisters.VPR, 32, "vpr", "vpr_reg", "vector"));
                     features.Add(mveProfileFeature);
                 }
 
@@ -895,7 +895,7 @@ namespace Antmicro.Renode.Peripherals.CPU
         [Export]
         private int FindPendingIRQ()
         {
-            return nvic != null ? nvic.FindPendingInterrupt() : -1;
+            return nvic?.FindPendingInterrupt() ?? 0;
         }
 
         [Export]
@@ -950,8 +950,7 @@ namespace Antmicro.Renode.Peripherals.CPU
         [Export]
         private int AcknowledgeIRQ()
         {
-            var result = nvic.AcknowledgeIRQ();
-            return result;
+            return nvic?.AcknowledgeIRQ() ?? 0;
         }
 
         private uint ShouldAccessBeSecure()
