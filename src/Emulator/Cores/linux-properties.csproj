@@ -5,7 +5,6 @@
   <LinkerPath Condition=" '$(LinkerPath)' == '' ">/usr/bin/gcc</LinkerPath>
   <ArPath Condition=" '$(ArPath)' == '' ">/usr/bin/ar</ArPath>
   <CurrentPlatform>Linux</CurrentPlatform>
-  <DefineConstants>$(DefineConstants);PLATFORM_LINUX</DefineConstants>
-  <InvariantGlobalization>true</InvariantGlobalization>
+<DefineConstants>$(DefineConstants);PLATFORM_LINUX</DefineConstants>
 </PropertyGroup>
 </Project>
