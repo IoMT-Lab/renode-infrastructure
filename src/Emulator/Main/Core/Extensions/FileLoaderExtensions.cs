@@ -414,7 +414,7 @@ namespace Antmicro.Renode.Core.Extensions
         }
 
         // Name of the last parameter is kept as 'cpu' for backward compatibility.
-        public static void LoadELF(this IBusController loader, ReadFilePath fileName, bool useVirtualAddress = false, IPeripheral cpu = null)
+        public static void LoadELF(this IBusController loader, ReadFilePath fileName, bool useVirtualAddress = false, string symbolPrefix = null, IPeripheral cpu = null)
         {
             if(!loader.Machine.IsPaused)
             {
@@ -448,7 +448,7 @@ namespace Antmicro.Renode.Core.Extensions
                         loader.LoadFileChunks(fileName, chunks, peripheral);
                         if(peripheral is IInitableCPU initableCPU)
                         {
-                            loader.LoadSymbolsFrom(elf, useVirtualAddress, context: initableCPU);
+                            loader.LoadSymbolsFrom(elf, useVirtualAddress, context: initableCPU, symbolPrefix: symbolPrefix);
                             initableCPU.InitFromElf(elf);
                         }
                     }
@@ -456,7 +456,7 @@ namespace Antmicro.Renode.Core.Extensions
                 else
                 {
                     loader.LoadFileChunks(fileName, chunks, null);
-                    loader.LoadSymbolsFrom(elf, useVirtualAddress);
+                    loader.LoadSymbolsFrom(elf, useVirtualAddress, symbolPrefix: symbolPrefix);
                     foreach(var initableCpu in loader.GetCPUs().OfType<IInitableCPU>())
                     {
                         initableCpu.InitFromElf(elf);

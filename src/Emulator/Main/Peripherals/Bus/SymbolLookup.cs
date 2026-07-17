@@ -40,15 +40,15 @@ namespace Antmicro.Renode.Core
         /// <param name="elf">Elf.</param>
         /// <param name="useVirtualAddress">Use the virtual address of the symbols, default is physical.</param>
         /// <param name="textAddress">Override the starting address of the text section (actually the lowest-address loaded segment).</param>
-        public void LoadELF(IELF elf, bool useVirtualAddress = false, ulong? textAddress = null)
+        public void LoadELF(IELF elf, bool useVirtualAddress = false, ulong? textAddress = null, string symbolPrefix = null)
         {
             if(elf is ELF<uint> elf32)
             {
-                LoadELF(elf32, useVirtualAddress, textAddress);
+                LoadELF(elf32, useVirtualAddress, textAddress, symbolPrefix);
             }
             else if(elf is ELF<ulong> elf64)
             {
-                LoadELF(elf64, useVirtualAddress, textAddress);
+                LoadELF(elf64, useVirtualAddress, textAddress, symbolPrefix);
             }
             else
             {
@@ -225,7 +225,7 @@ namespace Antmicro.Renode.Core
             return symbol;
         }
 
-        private void LoadELF<T>(ELF<T> elf, bool useVirtualAddress = false, ulong? textAddress = null) where T : struct
+        private void LoadELF<T>(ELF<T> elf, bool useVirtualAddress = false, ulong? textAddress = null, string symbolPrefix = null) where T : struct
         {
             if(!elf.TryGetSection(".symtab", out var symtabSection))
             {
@@ -249,6 +249,10 @@ namespace Antmicro.Renode.Core
             var filteredSymtab = symtab.Entries.Where(x => !(excludedSymbolNames.Contains(x.Name) && x.Type == SymbolType.NotSpecified))
                                 .Where(x => !excludedSymbolTypes.Contains(x.Type))
                                 .Where(x => x.PointedSectionIndex != (uint)SpecialSectionIndex.Undefined);
+            if(symbolPrefix != null)
+            {
+                filteredSymtab = filteredSymtab.Select(x => new SymbolEntry<T>(symbolPrefix + x.Name, x.Value, x.Size, x.Binding, x.Type, elf, x.PointedSectionIndex));
+            }
             var elfSymbols = filteredSymtab
                                 .Select(x => new Symbol(x.OffsetBy(offset), thumb));
             var elfFunctionSymbols = filteredSymtab.Where(x => x.PointedSection != null && (x.PointedSection.Flags & SectionFlags.Executable) == SectionFlags.Executable)
