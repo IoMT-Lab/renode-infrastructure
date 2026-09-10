@@ -149,14 +149,27 @@ namespace Antmicro.Renode.Peripherals.CPU
         {
             if(!value)
             {
+                LogFunctionNames(false, new List<string>(), new List<string>());
+            }
+            else
+            {
+                var allowedPrefixesArray = spaceSeparatedAllowedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var disallowedPrefixesArray = spaceSeparatedDisallowedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                LogFunctionNames(true, allowedPrefixesArray.ToList(), disallowedPrefixesArray.ToList(), removeDuplicates, useFunctionSymbolsOnly, eventOnly);
+            }
+        }
+
+        public void LogFunctionNames(bool value, List<string> allowedPrefixes, List<string> disallowedPrefixes, bool removeDuplicates = false, bool useFunctionSymbolsOnly = true, bool eventOnly = false)
+        {
+            if(!value)
+            {
                 logFunctionNamesCurrentState = null;
                 SetInternalHookAtBlockBegin(null);
                 return;
             }
-            logFunctionNamesCurrentState = new LogFunctionNamesState(spaceSeparatedAllowedPrefixes, spaceSeparatedDisallowedPrefixes, removeDuplicates, useFunctionSymbolsOnly, eventOnly);
+            logFunctionNamesCurrentState = new LogFunctionNamesState(allowedPrefixes, disallowedPrefixes, removeDuplicates, useFunctionSymbolsOnly, eventOnly);
 
-            var allowedPrefixesArray = spaceSeparatedAllowedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            var disallowedPrefixesArray = spaceSeparatedDisallowedPrefixes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             // using string builder here is due to performance reasons: test shows that string.Format is much slower
             var messageBuilder = new StringBuilder(256);
 
@@ -173,12 +186,12 @@ namespace Antmicro.Renode.Peripherals.CPU
                     previousSymbol = symbol;
                 }
 
-                if(allowedPrefixesArray.Length > 0 && (name == null || !allowedPrefixesArray.Any(name.StartsWith)))
+                if(allowedPrefixes.Count > 0 && (name == null || !allowedPrefixes.Any(name.StartsWith)))
                 {
                     return;
                 }
 
-                if(disallowedPrefixesArray.Length > 0 && (name == null || disallowedPrefixesArray.Any(name.StartsWith)))
+                if(disallowedPrefixes.Count > 0 && (name == null || disallowedPrefixes.Any(name.StartsWith)))
                 {
                     return;
                 }
@@ -365,7 +378,7 @@ namespace Antmicro.Renode.Peripherals.CPU
             if(cpuState.LogFunctionNamesState.HasValue)
             {
                 var logFunctionNamesState = cpuState.LogFunctionNamesState.Value;
-                LogFunctionNames(true, logFunctionNamesState.SpaceSeparatedAllowedPrefixes, logFunctionNamesState.SpaceSeparatedDisallowedPrefixes, logFunctionNamesState.RemoveDuplicates, logFunctionNamesState.UseFunctionSymbolsOnly, logFunctionNamesState.EventOnly);
+                LogFunctionNames(true, logFunctionNamesState.AllowedPrefixes, logFunctionNamesState.DisallowedPrefixes, logFunctionNamesState.RemoveDuplicates, logFunctionNamesState.UseFunctionSymbolsOnly, logFunctionNamesState.EventOnly);
             }
         }
 
@@ -2604,18 +2617,18 @@ namespace Antmicro.Renode.Peripherals.CPU
 
         private struct LogFunctionNamesState
         {
-            public LogFunctionNamesState(string spaceSeparatedAllowedPrefixes, string spaceSeparatedDisallowedPrefixes, bool removeDuplicates, bool useFunctionSymbolsOnly, bool eventOnly = false)
+            public LogFunctionNamesState(List<string> allowedPrefixes, List<string> disallowedPrefixes, bool removeDuplicates, bool useFunctionSymbolsOnly, bool eventOnly = false)
             {
-                this.SpaceSeparatedAllowedPrefixes = spaceSeparatedAllowedPrefixes;
-                this.SpaceSeparatedDisallowedPrefixes = spaceSeparatedDisallowedPrefixes;
+                this.AllowedPrefixes = allowedPrefixes;
+                this.DisallowedPrefixes = disallowedPrefixes;
                 this.RemoveDuplicates = removeDuplicates;
                 this.UseFunctionSymbolsOnly = useFunctionSymbolsOnly;
                 this.EventOnly = eventOnly;
             }
 
-            public string SpaceSeparatedAllowedPrefixes { get; private set; }
+            public List<string> AllowedPrefixes { get; private set; }
 
-            public string SpaceSeparatedDisallowedPrefixes { get; private set; }
+            public List<string> DisallowedPrefixes { get; private set; }
 
             public bool RemoveDuplicates { get; private set; }
 
